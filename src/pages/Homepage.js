@@ -1,10 +1,11 @@
 import React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios'; 
 
 function Homepage() {
 
   const [selectedCategory, setSelectedCategory] = useState(''); 
+  const [nytData, setNytData] = useState(""); 
 
   // for use on front end: 
   const bookCategories = [
@@ -29,22 +30,25 @@ function Homepage() {
     "young-adult-paperback-monthly"
   ]
 
-  let testURL = 'http://localhost:4000/api/nyt-bestsellers/category/hardcover-fiction'
+  let baseURL = 'http://localhost:4000/api/nyt-bestsellers/category/'
 
-  const handleClick = (e) => {
-    this.setSelectedCategory({value: e.target.value});
-    console.log(e.target.value);
-  }
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(selectedCategory);
+    console.log('selected category at submit: ', selectedCategory);
+    let queryUrl = baseURL + selectedCategory; 
+    console.log('queryUrl: ', queryUrl);  
+    await axios.get(queryUrl)
+      .then((res) => {
+        let resArray = res.data.results.books; 
+        console.log('res.data.results.books: ', resArray);
+        setNytData(resArray); 
+      })
   }
 
   return (
     <div>
       <p>pages/Homepage</p>
-      <form>
+      <form onSubmit={handleSubmit}>
         <label>Category</label>
         <select value={selectedCategory} onChange={(e) => {setSelectedCategory(e.target.value)}}>
         {bookCategories.map((category) => (
@@ -53,7 +57,10 @@ function Homepage() {
         </select>
         <button>Submit</button>
       </form>
-      <p>{selectedCategory}</p>
+      <p>{selectedCategory && selectedCategory}</p>
+      <div>{nytData && nytData.map((book) => {
+        return <p key={book.title}>{book.title}</p>
+      })}</div>
 
     </div>
   )
